@@ -1,48 +1,50 @@
 import json
+import os
+import boto3
 
 
 def lambda_handler(event, context):
-    products = [
-        {
-            "id": "1",
-            "title": "Golden Retriever",
-            "description": "Golden Retrievers are friendly, intelligent, and devoted. They are great family pets.",
-            "price": 120
-        },
-        {
-            "id": "2",
-            "title": "German Shepherd",
-            "description": "German Shepherds are confident, courageous, and smart. They are excellent working dogs.",
-            "price": 1200
-        },
-        {
-            "id": "3",
-            "title": "Bulldog",
-            "description": "Bulldogs are calm, courageous, and friendly. They are known for their loose, wrinkled skin.",
-            "price": 1500
-        },
-        {
-            "id": "4",
-            "title": "Beagle",
-            "price": 800,
-            "description": "Beagles are curious, friendly, and merry. They are known for their excellent sense of smell."
-        },
-        {
-            "id": "5",
-            "title": "Poodle",
-            "price": 900,
-            "description": "Poodles are active, proud, and very smart. They come in three sizes: standard, miniature, and toy."
-        }
-    ]
+    print(f"Received event: {json.dumps(event)}")
+    print(f"Received context: {context}")
 
-    response = {
-        "statusCode": 200,
-        "body": json.dumps(products),
-        "headers": {
-            "Content-Type": "application/json",
-            "Access-Control-Allow-Origin": "*",
-            "Access-Control-Allow-Methods": "GET"
-        }
+    headers = {
+        "Content-Type": "application/json",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET"
     }
 
-    return response
+    try:
+        dynamodb = boto3.resource('dynamodb', region_name=os.getenv('REGION'))
+
+        products_table = dynamodb.Table(os.getenv('PRODUCTS_TABLE_NAME'))
+        stocks_table = dynamodb.Table(os.getenv('STOCKS_TABLE_NAME'))
+
+        products_response = products_table.scan()
+        products_items = products_response.get('Items', [])
+
+        stocks_response = stocks_table.scan()
+        stocks_items = stocks_response.get('Items', [])
+
+        products_dict = {item['id']: item for item in products_items}
+
+        for item in stocks_items:
+            product_id = item['product_id']
+            if product_id in products_dict:
+                products_dict[product_id]['count'] = int(item['count'])
+                products_dict[product_id]['price'] = int(products_dict[product_id]['price'])
+
+        products = list(products_dict.values())
+
+        response = {
+            "statusCode": 200,
+            "body": json.dumps(products),
+            "headers": headers
+        }
+
+        return response
+    except Exception as e:
+        return {
+            "statusCode": 500,
+            "body": json.dumps({"message": f"Internal server error: {str(e)}"}),
+            "headers": headers
+        }
