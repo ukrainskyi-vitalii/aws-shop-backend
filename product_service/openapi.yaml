@@ -1,0 +1,143 @@
+openapi: 3.0.0
+info:
+  title: Product Service API
+  description: API for managing and retrieving products.
+  version: 1.0.0
+servers:
+  - url: https://ilihgm3cxb.execute-api.eu-west-1.amazonaws.com/prod
+    description: Production server
+paths:
+  /products:
+    get:
+      summary: Get all products
+      operationId: getProducts
+      responses:
+        '200':
+          description: A list of products
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Product'
+    post:
+      summary: Create a new product
+      operationId: createProduct
+      requestBody:
+        description: Product to create
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+      responses:
+        '200':
+          description: Product created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Product added successfully"
+                  product_id:
+                    type: string
+                    example: "19ba3d6a-f8ed-491b-a192-0a33b71b38c4"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+              example:
+                message: "Invalid data"
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+              example:
+                message: "Internal server error"
+  /products/{id}:
+    get:
+      summary: Get product by ID
+      operationId: getProductById
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: ID of the product
+          schema:
+            type: string
+      responses:
+        '200':
+          description: A single product
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Product'
+        '404':
+          description: Product not found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+              example:
+                message: "Product not found"
+        '400':
+          description: Bad request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+              example:
+                message: "Bad request"
+components:
+  schemas:
+    Product:
+      type: object
+      properties:
+        id:
+          type: string
+          example: "0b33d8a4-bbe7-416d-a282-c0209dbcf5db"
+        name:
+          type: string
+          example: "Product Name"
+        price:
+          type: number
+          example: 1000
+        description:
+          type: string
+          example: "Product description"
+        count:
+          type: number
+          example: 1
+    ProductInput:
+      type: object
+      properties:
+        title:
+          type: string
+          example: "Product Name"
+        description:
+          type: string
+          example: "Product description"
+        price:
+          type: number
+          example: 1000
+        count:
+          type: number
+          example: 1
