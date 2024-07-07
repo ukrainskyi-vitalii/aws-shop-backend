@@ -6,12 +6,12 @@ import uuid
 dynamodb = boto3.client('dynamodb')
 sns = boto3.client('sns')
 
-table_name = os.environ['PRODUCTS_TABLE_NAME']
-stocks_table_name = os.environ['STOCKS_TABLE_NAME']
-sns_topic_arn = os.getenv('SNS_TOPIC_ARN')
-
 
 def lambda_handler(event, context):
+    table_name = os.getenv('PRODUCTS_TABLE_NAME')
+    stocks_table_name = os.getenv('STOCKS_TABLE_NAME')
+    sns_topic_arn = os.getenv('SNS_TOPIC_ARN')
+
     for record in event['Records']:
         message = json.loads(record['body'])
         print(f"message {message}")
@@ -33,13 +33,13 @@ def lambda_handler(event, context):
         transaction_items = [
             {
                 'Put': {
-                    'TableName': os.getenv('PRODUCTS_TABLE_NAME'),
+                    'TableName': table_name,
                     'Item': product_item
                 }
             },
             {
                 'Put': {
-                    'TableName': os.getenv('STOCKS_TABLE_NAME'),
+                    'TableName': stocks_table_name,
                     'Item': stock_item
                 }
             }
