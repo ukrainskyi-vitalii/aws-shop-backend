@@ -5,12 +5,14 @@ import boto3
 import os
 
 s3 = boto3.client('s3')
+sqs = boto3.client('sqs')
 
 
 def lambda_handler(event, context):
     print(f"Received event: {json.dumps(event)}")
 
     bucket_name = os.environ['BUCKET_NAME']
+    sqs_queue_url = os.environ['SQS_QUEUE_URL']
 
     for record in event['Records']:
         key = record['s3']['object']['key']
@@ -21,7 +23,10 @@ def lambda_handler(event, context):
         reader = csv.DictReader(csv_file)
 
         for row in reader:
-            print(row)
+            sqs.send_message(
+                QueueUrl=sqs_queue_url,
+                MessageBody=json.dumps(row)
+            )
 
         copy_source = {'Bucket': bucket_name, 'Key': key}
         parsed_key = key.replace('uploaded/', 'parsed/')
