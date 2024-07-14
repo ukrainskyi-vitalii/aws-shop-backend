@@ -3,13 +3,13 @@ import base64
 
 
 def lambda_handler(event, context):
+    print(f"event: {event}")
+
+    authorization_header = event.get('authorizationToken', '')
+    if not authorization_header or ' ' not in authorization_header:
+        raise Exception('Unauthorized')
+
     try:
-        print(f"event: {event}")
-
-        authorization_header = event.get('authorizationToken')
-        if not authorization_header or ' ' not in authorization_header:
-            return generate_policy('user', 'Deny', event['methodArn'])
-
         auth_scheme, auth_b64 = authorization_header.split(' ', 1)
 
         print(f"auth_scheme: {auth_scheme} auth_b64 {auth_b64}")
