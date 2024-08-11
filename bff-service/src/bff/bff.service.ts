@@ -1,6 +1,6 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Request } from 'express';
-import axios, {AxiosResponse} from 'axios';
+import axios, { AxiosResponse } from 'axios';
 import { Cache } from 'cache-manager';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 
@@ -17,16 +17,11 @@ export class BffService {
     delete headers.host;
     const cacheKey = `${method}:${url}`;
 
-    this.logger.log(`method: ${method}`);
-    this.logger.log(`url: ${url}`);
-    this.logger.log(`isset: ${url.includes('/prod/products')}`);
     if (method === 'get' && url.includes('/prod/products')) {
-      this.logger.log(`cacheKey: ${cacheKey}`);
       const cachedResponse = await this.cacheManager.get<{
         status: number;
         data: any;
       }>(cacheKey);
-      this.logger.log(`cachedResponse: ${cachedResponse}`);
       if (cachedResponse) {
         this.logger.log(`Cache hit for key: ${cacheKey}`);
         return {
