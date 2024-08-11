@@ -10,6 +10,7 @@ import {
 } from '@nestjs/common';
 import { Request, Response } from 'express';
 import { BffService } from './bff.service';
+import { AxiosResponse } from 'axios';
 
 @Controller()
 export class BffController {
@@ -39,7 +40,7 @@ export class BffController {
     try {
       const fullUrl = `${recipientServiceUrl}${req.url.replace(`/${recipientServiceName}`, '')}`;
       this.logger.log(`Full URL: ${fullUrl}`);
-      const response = await this.bffService.proxyRequest(fullUrl, req);
+      const response = await this.bffService.proxyRequest(fullUrl, req) as AxiosResponse<any>;
       res.status(response.status).json(response.data);
     } catch (error) {
       this.logger.error(
